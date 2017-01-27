@@ -1,0 +1,75 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+
+    "Description": "EC2 instance with webserver, IP table rules: restricted SSH access - Global webserver access",
+    
+    "Parameters": {
+        "KeyName": {
+            "Description": "Choose an existing KeyName pair from the dropdown.",
+            "Type": "AWS::EC2::KeyPair::KeyName",
+            "ConstraintDescription": "Can contain only ASCII characters."
+        }
+    },
+
+    "Resources": {
+        "BoxServer": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": "ami-9ff7e8af",
+                "InstanceType": "t2.micro",
+                "KeyName": { "Ref" : "KeyName" },
+                "SecurityGroups": [{"Ref": "BoxServerRules"}],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "#!/bin/bash -xe\n",
+                                "/opt/aws/bin/cfn-init -v ",
+                                "         --stack ",
+                                {
+                                    "Ref": "AWS::StackName"
+                                },
+                                "         --resource BoxServer ",
+                                "         --region us-west-2",
+                                "\n"
+                            ]
+                        ]
+                    }
+                }
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Init": {
+                    "config": {
+                        "packages": {
+                            "yum": {"httpd": []}
+                        },
+                        "services": {
+                            "sysvinit": {"httpd": {"enabled": "true","ensureRunning": "true"}}
+                        }
+                    }
+                }
+            }
+        },
+        "BoxServerRules": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "Enable HTTP access via port 80 & SSH access only within a specified range of IP addresses",
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "80",
+                        "ToPort": "80",
+                        "CidrIp": "0.0.0.0/0"
+                    },
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "22",
+                        "ToPort": "22",
+                        "CidrIp": "216.165.95.0/24"
+                    }
+                ]
+            }
+        }
+    }
+}
