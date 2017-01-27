@@ -15,7 +15,7 @@
         "BoxServer": {
             "Type": "AWS::EC2::Instance",
             "Properties": {
-                "ImageId": "ami-9ff7e8af",
+                "ImageId": "ami-0b33d91d",
                 "InstanceType": "t2.micro",
                 "KeyName": { "Ref" : "KeyName" },
                 "SecurityGroups": [{"Ref": "BoxServerRules"}],
